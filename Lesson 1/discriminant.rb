@@ -1,10 +1,10 @@
-print "Введите коэффициент a: "
+print 'Введите коэффициент a: '
 a = gets.chomp.to_f
 
-print "Введите коэффициент b: "
+print 'Введите коэффициент b: '
 b = gets.chomp.to_f
 
-print "Введите коэффициент c: "
+print 'Введите коэффициент c: '
 c = gets.chomp.to_f
 
 d = (b**2) - (4 * a * c)
@@ -12,7 +12,7 @@ d = (b**2) - (4 * a * c)
 print "Дискриминант = #{d}, "
 
 if d < 0
-  puts "Корней нет"
+  puts 'Корней нет'
 elsif d == 0
   x = -b / (2 * a)
   puts "Корень = #{x}"
