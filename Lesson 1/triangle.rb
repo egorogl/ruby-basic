@@ -11,11 +11,11 @@ rectangular = false # Прямоугольный
 equilateral = (a == b) && (a == c) # Равносторонный
 isosceles = (a == b) || (a == c) || (b == c) # Равнобедренный
 
-unless equilateral # Если треугольник не равносторонний, проверяем прямоугольный ли
+# Если треугольник не равносторонний, проверяем прямоугольный ли
+unless equilateral
   abc_sorted = [a, b, c].sort
   rectangular = (abc_sorted[0]**2 + abc_sorted[1]**2).round(3) == (abc_sorted[2]**2).round(3)
 end
-
 
 print 'Треугольник '
 

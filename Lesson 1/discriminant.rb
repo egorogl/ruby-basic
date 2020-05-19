@@ -11,9 +11,9 @@ d = (b**2) - (4 * a * c)
 
 print "Дискриминант = #{d}, "
 
-if d < 0
+if d.negative?
   puts 'Корней нет'
-elsif d == 0
+elsif d.zero?
   x = -b / (2 * a)
   puts "Корень = #{x}"
 else

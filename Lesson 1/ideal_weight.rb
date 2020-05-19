@@ -6,7 +6,7 @@ height = gets.chomp.to_i
 
 ideal_weight = ((height - 110) * 1.15).round(2)
 
-if ideal_weight < 0
+if ideal_weight.negative?
   puts 'Ваш вес уже оптимальный'
 else
   puts "#{name}, ваш идеальный вес #{ideal_weight} кг."
