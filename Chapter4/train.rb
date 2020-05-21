@@ -3,27 +3,35 @@
 # Train class
 class Train
   attr_accessor :speed
-  attr_reader :count_wagons, :number, :current_station, :type
+  attr_reader :number, :current_station, :type
 
-  def initialize(number, type, count_wagons)
+  def initialize(number, type)
     @number = number
     @type = type
-    @count_wagons = count_wagons
     @speed = 0
     @route = nil
     @current_station = nil
+    @wagons = []
   end
 
   def stop
     self.speed = 0
   end
 
-  def attach_wagon
-    @count_wagons += 1 if speed.zero?
+  def attach_wagon(wagon)
+    return unless speed.zero? || wagon.type == type
+
+    @wagons.push(wagon)
   end
 
-  def detach_wagon
-    @count_wagons -= 1 if speed.zero? && @count_wagons.positive?
+  def detach_wagon(wagon)
+    return unless speed.zero?
+
+    @wagons.delete(wagon)
+  end
+
+  def count_wagons
+    @wagons.size
   end
 
   def route=(route)
