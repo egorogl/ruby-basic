@@ -10,7 +10,7 @@ class Route
 
   def add_station(station, insert_index)
     unless insert_index != 0 &&
-           insert_index < (@stations.size - 1) &&
+           insert_index < @stations.size &&
            insert_index != -1
       return
     end
@@ -28,7 +28,11 @@ class Route
   end
 
   def display_stations
-    puts 'Маршрут следования:'
-    @stations.each { |station| puts station.name }
+    print 'Маршрут следования: '
+    @stations.each do |station|
+      print station.name
+      print ' -> ' if station != @stations.last
+    end
+    puts
   end
 end
