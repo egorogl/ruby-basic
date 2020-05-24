@@ -3,7 +3,7 @@
 # Train class
 class Train
   attr_accessor :speed
-  attr_reader :number, :current_station, :type
+  attr_reader :number, :current_station, :type, :route, :wagons
 
   def initialize(number, type)
     @number = number
@@ -19,7 +19,7 @@ class Train
   end
 
   def attach_wagon(wagon)
-    return unless speed.zero? || wagon.type == type
+    return unless speed.zero? || wagon&.type == type
 
     @wagons.push(wagon)
   end
@@ -41,16 +41,30 @@ class Train
   end
 
   def goto_next_station
+    station = next_station
+    return if station.nil?
+
     @current_station.send_train(self)
-    @current_station = next_station
+    @current_station = station
     @current_station&.take_train(self)
+    @current_station
   end
 
   def goto_prev_station
+    station = prev_station
+    return if station.nil?
+
     @current_station.send_train(self)
-    @current_station = prev_station
+    @current_station = station
     @current_station&.take_train(self)
+    @current_station
   end
+
+  protected
+
+  # Методы ниже, не используются в клиентском коде, хотя и полезные, чтобы просто
+  # посмотреть станции рядом, без перемещения. Перемещено в секцию protected
+  # ради самого задания.
 
   def next_station
     return if @route.nil?
