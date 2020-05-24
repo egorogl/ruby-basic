@@ -31,6 +31,16 @@ class RzdManager
         create_train
       when '3'
         manage_route
+      when '4'
+        route_to_train
+      when '5'
+        attach_wagon_to_train
+      when '6'
+        detach_wagon_from_train
+      when '7'
+        manage_move
+      when '8'
+        display_stations
       when '9'
         seed
       when '0'
@@ -40,7 +50,6 @@ class RzdManager
         puts message_alert('Неверный ввод')
       end
     end
-
   end
 
   def menu
@@ -56,6 +65,123 @@ class RzdManager
     puts '9 - Очистить и заполнить базу тестовыми данными'
     puts '0 - Покинуть пост управляющего'
     print 'Выберите действие: '
+  end
+
+  def manage_move
+    loop do
+      puts 'Что вы хотите сделать?'
+      puts '1 - Переместить поезд на следующую станцию'
+      puts '2 - Переместить поезд на предыдущую станцию'
+      puts '0 - Назад'
+      choice = gets.chomp
+
+      case choice
+      when '1'
+        goto_train_next_station
+      when '2'
+        goto_train_prev_station
+      when '0'
+        return
+      else
+        puts message_alert('Неверный выбор. Повторите ввод')
+        next
+      end
+
+      break
+    end
+  end
+
+  def goto_train_next_station
+    train = interactive_select_train
+    current_station = train.goto_next_station
+
+    if current_station.nil?
+      puts message_alert('Поезд не переместился. У поезда нет маршрута или конечная станция')
+    else
+      puts message_success("Поезд перемещен. Текущая станция #{current_station.name}")
+    end
+  end
+
+  def goto_train_prev_station
+    train = interactive_select_train
+    current_station = train.goto_prev_station
+
+    if current_station.nil?
+      puts message_alert('Поезд не переместился. У поезда нет маршрута или конечная станция')
+    else
+      puts message_success("Поезд перемещен. Текущая станция #{current_station.name}")
+    end
+  end
+
+  def attach_wagon_to_train
+    train = interactive_select_train
+    wagon = nil
+
+    case train.type
+    when :passenger
+      wagon = PassengerWagon.new
+    when :cargo
+      wagon = CargoWagon.new
+    end
+
+    if train.attach_wagon(wagon).nil?
+      puts message_alert('Вагон не прицеплен')
+    else
+      puts message_success("Вагон №#{train.count_wagons} успешно прицеплен")
+    end
+  end
+
+  def detach_wagon_from_train
+    train = interactive_select_train
+    wagon = train.wagons.last
+
+    if wagon.nil?
+      puts message_alert('У поезда нет вагонов')
+      return
+    end
+
+    if train.detach_wagon(wagon).nil?
+      puts message_alert('Вагон не отцеплен')
+    else
+      puts message_success("Вагон №#{train.count_wagons + 1} успешно отцеплен")
+    end
+  end
+
+  def route_to_train
+    route = interactive_select_route
+    train = interactive_select_train
+
+    unless train.route.nil?
+      puts 'У поезда уже установлен маршрут'
+      train.route.display_stations
+      choice = nil
+
+      loop do
+        print 'Заменить? 0 - НЕТ, 1 - ДА: '
+        choice = gets.chomp
+
+        break if ('0'..'1').include?(choice)
+
+        puts message_alert('Неверный ввод')
+      end
+
+      return if choice == '0'
+    end
+
+    train.route = route
+
+    puts message_success('Маршрут успешно установлен')
+  end
+
+  def display_stations
+    puts 'Список станций и поездов на них'
+    @stations.each do |station|
+      puts "Станция | #{station.name}"
+      puts "\tПассажирские поезда:"
+      station.get_trains_by_type(:passenger).each { |train| puts "\t\tПоезд | #{train.number}"  }
+      puts "\tГрузовые поезда:"
+      station.get_trains_by_type(:cargo).each { |train| puts "\t\tПоезд | #{train.number}"  }
+    end
   end
 
   def create_station
@@ -131,13 +257,52 @@ class RzdManager
   end
 
   def delete_station_from_route
-    # 111
+    station = nil
+    station_index = nil
+    route = interactive_select_route
+
+    if route.stations.size == 2
+      puts message_alert('В маршруте только 2 станции. Удалить начальную или конечную станцию нельзя')
+      return
+    end
+
+    loop do
+      print "Выберите номер станции для удаления из маршрута (2..#{route.stations.size - 1}): "
+      station_index = gets.chomp.to_i - 1
+
+      break if station_index.positive? && station_index < route.stations.size - 1
+
+      puts message_alert('Неверный выбор. Повторите ввод')
+    end
+
+    route.delete_station(route.stations[station_index])
+
+    puts message_success('Станция успешно удалена из маршрута')
   end
 
-  def add_station_to_route
-    station = nil
+  def interactive_select_train
+    train = nil
+
+    loop do
+      puts 'Выберите поезд:'
+      @trains.each_with_index { |train, index| puts "#{index + 1} - #{train.number} (вагонов #{train.count_wagons})" }
+
+      print ': '
+      train_index = gets.chomp.to_i
+
+      if train_index.positive? && train_index <= @trains.size
+        train = @trains[train_index - 1]
+        break
+      end
+
+      puts message_alert('Неверный выбор. Повторите ввод')
+    end
+
+    train
+  end
+
+  def interactive_select_route
     route = nil
-    insert_index = nil
 
     loop do
       puts 'Выберите маршрут:'
@@ -156,6 +321,14 @@ class RzdManager
 
       puts message_alert('Неверный выбор. Повторите ввод')
     end
+
+    route
+  end
+
+  def add_station_to_route
+    station = nil
+    insert_index = nil
+    route = interactive_select_route
 
     available_station = @stations.reject { |station| route.stations.include?(station) }
 
@@ -253,7 +426,8 @@ class RzdManager
     @stations.push(Station.new('Хабаровск'))
     @stations.push(Station.new('Ишим'))
 
-    @trains.push(PassengerTrain.new('Пассажирский1'))
+    train1 = PassengerTrain.new('Пассажирский1')
+    @trains.push(train1)
     @trains.push(PassengerTrain.new('Пассажирский2'))
     @trains.push(PassengerTrain.new('Пассажирский3'))
     @trains.push(PassengerTrain.new('Пассажирский4'))
@@ -271,6 +445,8 @@ class RzdManager
     @routes.push(route1)
     @routes.push(Route.new(@stations[1], @stations[2]))
     @routes.push(Route.new(@stations[3], @stations[4]))
+
+    train1.route = route1
   end
 
   protected
