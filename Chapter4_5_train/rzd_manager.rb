@@ -9,15 +9,6 @@ require_relative 'passenger_wagon'
 
 # RzdManager class
 class RzdManager
-  RED = "\033[0;31m"
-  GREEN = "\033[0;32m"
-  NC = "\033[0m" # No Color
-
-  def initialize
-    @stations = []
-    @trains = []
-    @routes = []
-  end
 
   def run
     loop do
@@ -50,6 +41,54 @@ class RzdManager
         puts message_alert('Неверный ввод')
       end
     end
+  end
+
+  def seed
+    @stations = []
+    @trains = []
+    @routes = []
+
+    @stations.push(Station.new('Тюмень'))
+    @stations.push(Station.new('Москва'))
+    @stations.push(Station.new('Омск'))
+    @stations.push(Station.new('Сургут'))
+    @stations.push(Station.new('Владивосток'))
+    @stations.push(Station.new('Хабаровск'))
+    @stations.push(Station.new('Ишим'))
+
+    train1 = PassengerTrain.new('Пассажирский1')
+    @trains.push(train1)
+    @trains.push(PassengerTrain.new('Пассажирский2'))
+    @trains.push(PassengerTrain.new('Пассажирский3'))
+    @trains.push(PassengerTrain.new('Пассажирский4'))
+
+    @trains.push(CargoTrain.new('Грузовой1'))
+    @trains.push(CargoTrain.new('Грузовой2'))
+    @trains.push(CargoTrain.new('Грузовой3'))
+    @trains.push(CargoTrain.new('Грузовой4'))
+
+    route1 = Route.new(@stations[0], @stations[5])
+    route1.add_station(@stations[1], -2)
+    route1.add_station(@stations[3], -2)
+    route1.add_station(@stations[4], -2)
+
+    @routes.push(route1)
+    @routes.push(Route.new(@stations[1], @stations[2]))
+    @routes.push(Route.new(@stations[3], @stations[4]))
+
+    train1.route = route1
+  end
+
+  private
+
+  RED = "\033[0;31m"
+  GREEN = "\033[0;32m"
+  NC = "\033[0m" # No Color
+
+  def initialize
+    @stations = []
+    @trains = []
+    @routes = []
   end
 
   def menu
@@ -412,44 +451,6 @@ class RzdManager
 
     route
   end
-
-  def seed
-    @stations = []
-    @trains = []
-    @routes = []
-
-    @stations.push(Station.new('Тюмень'))
-    @stations.push(Station.new('Москва'))
-    @stations.push(Station.new('Омск'))
-    @stations.push(Station.new('Сургут'))
-    @stations.push(Station.new('Владивосток'))
-    @stations.push(Station.new('Хабаровск'))
-    @stations.push(Station.new('Ишим'))
-
-    train1 = PassengerTrain.new('Пассажирский1')
-    @trains.push(train1)
-    @trains.push(PassengerTrain.new('Пассажирский2'))
-    @trains.push(PassengerTrain.new('Пассажирский3'))
-    @trains.push(PassengerTrain.new('Пассажирский4'))
-
-    @trains.push(CargoTrain.new('Грузовой1'))
-    @trains.push(CargoTrain.new('Грузовой2'))
-    @trains.push(CargoTrain.new('Грузовой3'))
-    @trains.push(CargoTrain.new('Грузовой4'))
-
-    route1 = Route.new(@stations[0], @stations[5])
-    route1.add_station(@stations[1], -2)
-    route1.add_station(@stations[3], -2)
-    route1.add_station(@stations[4], -2)
-
-    @routes.push(route1)
-    @routes.push(Route.new(@stations[1], @stations[2]))
-    @routes.push(Route.new(@stations[3], @stations[4]))
-
-    train1.route = route1
-  end
-
-  protected
 
   def message_alert(msg)
     "#{RED}-----\n#{msg}\n-----\n#{NC}"
