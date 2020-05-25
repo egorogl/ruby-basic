@@ -10,6 +10,12 @@ require_relative 'passenger_wagon'
 # RzdManager class
 class RzdManager
 
+  def initialize
+    @stations = []
+    @trains = []
+    @routes = []
+  end
+
   def run
     loop do
       menu
@@ -84,12 +90,6 @@ class RzdManager
   RED = "\033[0;31m"
   GREEN = "\033[0;32m"
   NC = "\033[0m" # No Color
-
-  def initialize
-    @stations = []
-    @trains = []
-    @routes = []
-  end
 
   def menu
     puts "\nМеню управления РЖД"
