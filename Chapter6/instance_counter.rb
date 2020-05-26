@@ -10,11 +10,11 @@ module InstanceCounter
   # Module ClassMethods
   module ClassMethods
     def instances
-      @instances.nil? ? 0 : @instances
+      @instances ||= 0
     end
 
     def add_instance
-      @instances = 0 if @instances.nil?
+      @instances ||= 0
 
       @instances += 1
     end
