@@ -20,14 +20,14 @@ class Train
   @@trains = []
 
   def initialize(number, type)
-    raise ArgumentError, "Неверный формат номера поезда\n#{NUMBER_FORMAT_TEXT}" if number !~ REGEXP_NUMBER_FORMAT
-    raise ArgumentError, "Неверно передан тип поезда, доступные значения: #{VALID_TRAIN_TYPES}" unless VALID_TRAIN_TYPES.include?(type)
+    @speed = 0
+    @number = number
+    @type = type
+
+    validate!
 
     register_instance
 
-    @number = number
-    @type = type
-    @speed = 0
     @route = nil
     @current_station = nil
     @wagons = []
@@ -138,6 +138,8 @@ class Train
   private
 
   def validate!
+    raise "Неверный формат номера поезда\n#{NUMBER_FORMAT_TEXT}" if number !~ REGEXP_NUMBER_FORMAT
+    raise "Неверно задан тип поезда, доступные значения: #{VALID_TRAIN_TYPES}" unless VALID_TRAIN_TYPES.include?(type)
     raise 'Скорость поезда должна быть числом' unless speed.is_a?(Numeric)
   end
 end

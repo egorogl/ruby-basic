@@ -2,5 +2,5 @@
 
 # Module Company-Manufacturer
 module Manufacturer
-  attr_accessor :name
+  attr_accessor :company
 end
