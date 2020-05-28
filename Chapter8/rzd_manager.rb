@@ -310,9 +310,30 @@ class RzdManager
     puts 'Список станций и поездов на них'
     Station.each do |station|
       puts "Станция #{station.name}"
-      station.trains.each do |train|
-        puts "\t#{train.number}, #{train.VALID_TRAIN_TYPES[train.type]}, #{train.count_wagons} вагонов"
-        train.wagons.each_with_index { |wagon, index| puts "\t\t#{index + 1}, #{wagon.VALID_WAGON_TYPES[wagon.type]}, свободно #{wagon.free_seats}, занято #{wagon.busy_seats}" }
+      station.each_trains do |train|
+        puts "\t#{train.number}, #{Train::VALID_TRAIN_TYPES[train.type]}, #{train.count_wagons} вагонов"
+        train.each_with_index_wagons do |wagon, index|
+
+          free = case wagon.type
+                 when :passenger
+                   wagon.free_seats
+                 when :cargo
+                   wagon.free_volume
+                 else
+                   'неизвестно'
+                 end
+
+          busy = case wagon.type
+                 when :passenger
+                   wagon.busy_seats
+                 when :cargo
+                   wagon.busy_volume
+                 else
+                   'неизвестно'
+                 end
+
+          puts "\t\t#{index + 1}, #{Wagon::VALID_WAGON_TYPES[wagon.type]}, свободно #{free}, занято #{busy}"
+        end
       end
     end
   rescue StandardError => e
