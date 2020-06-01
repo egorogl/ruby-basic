@@ -4,7 +4,7 @@ require_relative 'wagon'
 
 # PassengerWagon class
 class PassengerWagon < Wagon
-  TEXT_ERRORS = {
+  ERRORS = {
     all_seats_numeric: 'Количество мест должно быть указано целым числом',
     busy_seats_gt_all: 'Количество занятых место больше, чем мест в вагоне',
     no_free_seats: 'Нет свободных мест'
@@ -22,7 +22,7 @@ class PassengerWagon < Wagon
   end
 
   def take_seat
-    raise TEXT_ERRORS[:no_free_seats] if busy_seats >= seats
+    raise ERRORS[:no_free_seats] if busy_seats >= seats
 
     self.busy_seats += 1
   end
@@ -34,8 +34,8 @@ class PassengerWagon < Wagon
   private
 
   def validate!
-    raise TEXT_ERRORS[:all_seats_numeric] unless seats.is_a?(Integer)
-    raise TEXT_ERRORS[:busy_seats_gt_all] if busy_seats > seats
+    raise ERRORS[:all_seats_numeric] unless seats.is_a?(Integer)
+    raise ERRORS[:busy_seats_gt_all] if busy_seats > seats
 
     super
   end

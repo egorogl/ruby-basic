@@ -6,9 +6,11 @@ require_relative 'cargo_train'
 require_relative 'cargo_wagon'
 require_relative 'passenger_train'
 require_relative 'passenger_wagon'
+require_relative 'validate'
 
 # RzdManager class
 class RzdManager
+  include Validate
 
   def initialize
     @stations = []
@@ -22,22 +24,14 @@ class RzdManager
       choice = gets.chomp
 
       case choice
-      when '1'
-        create_station
-      when '2'
-        create_train
-      when '3'
-        manage_route
-      when '4'
-        route_to_train
-      when '5'
-        manage_wagon
-      when '6'
-        manage_move
-      when '7'
-        display_stations
-      when '8'
-        seed
+      when '1' then create_station
+      when '2' then create_train
+      when '3' then manage_route
+      when '4' then route_to_train
+      when '5' then manage_wagon
+      when '6' then manage_move
+      when '7' then display_stations
+      when '8' then seed
       when '0'
         puts message_regular('Пока!')
         break
@@ -310,9 +304,30 @@ class RzdManager
     puts 'Список станций и поездов на них'
     Station.each do |station|
       puts "Станция #{station.name}"
-      station.trains.each do |train|
-        puts "\t#{train.number}, #{train.VALID_TRAIN_TYPES[train.type]}, #{train.count_wagons} вагонов"
-        train.wagons.each_with_index { |wagon, index| puts "\t\t#{index + 1}, #{wagon.VALID_WAGON_TYPES[wagon.type]}, свободно #{wagon.free_seats}, занято #{wagon.busy_seats}" }
+      station.each_trains do |train|
+        puts "\t#{train.number}, #{Train::VALID_TRAIN_TYPES[train.type]}, #{train.count_wagons} вагонов"
+        train.each_with_index_wagons do |wagon, index|
+
+          free = case wagon.type
+                 when :passenger
+                   wagon.free_seats
+                 when :cargo
+                   wagon.free_volume
+                 else
+                   'неизвестно'
+                 end
+
+          busy = case wagon.type
+                 when :passenger
+                   wagon.busy_seats
+                 when :cargo
+                   wagon.busy_volume
+                 else
+                   'неизвестно'
+                 end
+
+          puts "\t\t#{index + 1}, #{Wagon::VALID_WAGON_TYPES[wagon.type]}, свободно #{free}, занято #{busy}"
+        end
       end
     end
   rescue StandardError => e

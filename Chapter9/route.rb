@@ -2,13 +2,14 @@
 
 require_relative 'instance_counter'
 require_relative 'station'
+require_relative 'validate'
 
-# rubocop:disable Metrics/MethodLength
 # Route class
 class Route
   include InstanceCounter
+  include Validate
 
-  TEXT_ERRORS = {
+  ERRORS = {
     station_not_class: '%s станция должна быть классом Station, а не %s',
     index_not_integer: 'Индекс должен быть целым числом',
     index_outbound: 'Индекс выходит за допустимые пределы',
@@ -17,21 +18,13 @@ class Route
 
   attr_reader :stations
 
-  alias display_stations to_s
-
   def initialize(from, to)
-    unless from.is_a?(Station)
-      raise ArgumentError, format(
-        TEXT_ERRORS[:station_not_class],
-        'Начальная', from.class
-      )
+    validate_variable(ERRORS[:station_not_class], ['Начальная', from.class]) do
+      !from.is_a?(Station)
     end
 
-    unless to.is_a?(Station)
-      raise ArgumentError, format(
-        TEXT_ERRORS[:station_not_class],
-        'Конечная', to.class
-      )
+    validate_variable(ERRORS[:station_not_class], ['Конечная', from.class]) do
+      !to.is_a?(Station)
     end
 
     register_instance
@@ -47,35 +40,20 @@ class Route
   end
 
   def add_station(station, insert_index)
-    unless station.is_a?(Station)
-      raise ArgumentError, format(
-        TEXT_ERRORS[:station_not_class],
-        'Переданая', station.class
-      )
-    end
-
-    unless insert_index.is_a?(Integer)
-      raise ArgumentError, TEXT_ERRORS[:index_not_integer]
-    end
-
-    if (-1..0).include?(insert_index) || insert_index > @stations.size
-      raise IndexError, TEXT_ERRORS[:index_outbound]
-    end
+    validate_add_station(station, insert_index)
 
     @stations.insert(insert_index, station)
   end
 
   def delete_station(station)
-    unless station.is_a?(Station)
-      raise ArgumentError, format(
-        TEXT_ERRORS[:station_not_class],
-        'Переданая', station.class
-      )
+    validate_variable(ERRORS[:station_not_class],
+                      ['Переданая', station.class]) do
+      !station.is_a?(Station)
     end
 
-    if @stations.index(station).zero? ||
-       @stations.index(station) == (@stations.size - 1)
-      raise TEXT_ERRORS[:delete_extreme_station]
+    validate_variable(ERRORS[:delete_extreme_station]) do
+      @stations.index(station).zero? ||
+        @stations.index(station) == (@stations.size - 1)
     end
 
     @stations.delete(station)
@@ -95,5 +73,17 @@ class Route
   def validate!
     # TODO: For later
   end
+
+  def validate_add_station(station, insert_index)
+    validate_variable(ERRORS[:station_not_class],
+                      ['Переданая', station.class]) do
+      !station.is_a?(Station)
+    end
+    validate_variable(ERRORS[:index_not_integer]) do
+      !insert_index.is_a?(Integer)
+    end
+    validate_variable(ERRORS[:index_outbound]) do
+      (-1..0).include?(insert_index) || insert_index > stations.size
+    end
+  end
 end
-# rubocop:enable Metrics/MethodLength

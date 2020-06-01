@@ -4,12 +4,14 @@ require_relative 'manufacturer'
 require_relative 'instance_counter'
 require_relative 'wagon'
 require_relative 'route'
+require_relative 'validate'
 
 # rubocop:disable Metrics/ClassLength
 # Train class
 class Train
   include Manufacturer
   include InstanceCounter
+  include Validate
 
   VALID_TRAIN_TYPES = {
     passenger: 'пассажирский',
@@ -19,7 +21,7 @@ class Train
   NUMBER_FORMAT_TEXT =
     "Формат номера поезда:\nтри буквы или цифры в любом порядке, "\
     "необязательный дефис\nи еще 2 буквы или цифры после дефиса"
-  TEXT_ERRORS = {
+  ERRORS = {
     wagon_class: 'Вагон должен быть классом Wagon, а не %s',
     route_class: 'Маршрут должен быть классом Route, а не %s',
     attach_on_move: 'Нельзя прицепить вагон на ходу, скорость поезда %s',
@@ -30,7 +32,9 @@ class Train
     bound_station: 'Это и так %s станция',
     invalid_number_format: "Неверный формат номера поезда\n%s",
     train_type: 'Неверно задан тип поезда, доступные значения: %s',
-    speed_numeric: 'Скорость поезда должна быть числом'
+    speed_numeric: 'Скорость поезда должна быть числом',
+    block_each: 'Не передан блок в инстанс метод %s#each_with_index_wagons',
+    block_each_wagons: 'Не передан блок в инстанс метод %s#each_wagons'
   }.freeze
 
   attr_accessor :speed
@@ -68,6 +72,18 @@ class Train
     "скорость: #{speed}, вагонов: #{count_wagons}"
   end
 
+  def each_with_index_wagons
+    validate_variable(ERRORS[:block_each], self.class) { !block_given? }
+
+    wagons.each_with_index { |wagon, index| yield wagon, index }
+  end
+
+  def each_wagons
+    validate_variable(ERRORS[:block_each_wagons], self.class) { !block_given? }
+
+    wagons.each { |wagon| yield wagon }
+  end
+
   def valid?
     validate!
     true
@@ -79,30 +95,14 @@ class Train
     self.speed = 0
   end
 
-  # rubocop:disable Metrics/AbcSize
   def attach_wagon(wagon)
-    unless wagon.is_a?(Wagon)
-      raise ArgumentError, TEXT_ERRORS[:wagon_class, wagon.class]
-    end
-
-    raise format(TEXT_ERRORS[:attach_on_move], speed) unless speed.zero?
-
-    unless wagon.type == type
-      raise format(TEXT_ERRORS[:wagon_type, wagon.type, type])
-    end
+    validate_attach_wagon(wagon)
 
     @wagons.push(wagon)
   end
-  # rubocop:enable Metrics/AbcSize
 
   def detach_wagon(wagon)
-    raise TEXT_ERRORS[:empty_wagons] if @wagons.empty?
-
-    unless wagon.is_a?(Wagon)
-      raise ArgumentError, TEXT_ERRORS[:wagon_class, wagon.class]
-    end
-
-    raise format(TEXT_ERRORS[:detach_wagon], speed) unless speed.zero?
+    validate_detach_wagon(wagon)
 
     @wagons.delete(wagon)
   end
@@ -113,7 +113,7 @@ class Train
 
   def route=(route)
     unless route.is_a?(Route)
-      raise ArgumentError, TEXT_ERRORS[:route_class, route.class]
+      raise ArgumentError, ERRORS[:route_class, route.class]
     end
 
     @route = route
@@ -122,77 +122,89 @@ class Train
   end
 
   def goto_next_station
-    begin
-      station = next_station
-    rescue RuntimeError
-      raise
-    end
+    station = next_station
 
     @current_station.send_train(self)
     @current_station = station
     @current_station.take_train(self)
     @current_station
+  rescue RuntimeError
+    raise
   end
 
   def goto_prev_station
-    begin
-      station = prev_station
-    rescue RuntimeError
-      raise
-    end
+    station = prev_station
 
     @current_station.send_train(self)
     @current_station = station
     @current_station.take_train(self)
     @current_station
+  rescue RuntimeError
+    raise
   end
 
   protected
 
   def next_station
-    raise TEXT_ERRORS[:route_nil] unless @route
+    raise ERRORS[:route_nil] unless @route
 
     index_next_station_in_route = @route.stations.index(@current_station) + 1
 
     if index_next_station_in_route > @route.stations.size - 1
-      raise format(TEXT_ERRORS[:bound_station], 'конечная')
+      raise format(ERRORS[:bound_station], 'конечная')
     end
 
     @route.stations[index_next_station_in_route]
   end
 
   def prev_station
-    raise TEXT_ERRORS[:route_nil] unless @route
+    raise ERRORS[:route_nil] unless @route
 
     index_prev_station_in_route = @route.stations.index(@current_station) - 1
 
     if index_prev_station_in_route.negative?
-      raise format(TEXT_ERRORS[:bound_station], 'начальная')
+      raise format(ERRORS[:bound_station], 'начальная')
     end
 
     @route.stations[index_prev_station_in_route]
   end
 
   def sibling_stations
-    raise TEXT_ERRORS[:route_nil] unless @route
+    raise ERRORS[:route_nil] unless @route
 
     [prev_station, @current_station, next_station]
   end
 
   private
 
-  # rubocop:disable Metrics/AbcSize
   def validate!
-    if number !~ REGEXP_NUMBER_FORMAT
-      raise format(TEXT_ERRORS[:invalid_number_format], NUMBER_FORMAT_TEXT)
-    end
-
-    unless VALID_TRAIN_TYPES.include?(type)
-      raise format(TEXT_ERRORS[:train_type], VALID_TRAIN_TYPES.keys)
-    end
-
-    raise TEXT_ERRORS[:speed_numeric] unless speed.is_a?(Numeric)
+    validate_init_train
+    validate_variable(ERRORS[:speed_numeric], speed) { !speed.is_a?(Numeric) }
   end
-  # rubocop:enable Metrics/AbcSize
+
+  def validate_init_train
+    validate_variable(ERRORS[:invalid_number_format], NUMBER_FORMAT_TEXT) do
+      number !~ REGEXP_NUMBER_FORMAT
+    end
+
+    validate_variable(ERRORS[:train_type], VALID_TRAIN_TYPES.keys) do
+      !VALID_TRAIN_TYPES.include?(type)
+    end
+  end
+
+  def validate_attach_wagon(wagon)
+    wagon_type = wagon.type
+    train_speed = speed
+    validate_variable(ERRORS[:wagon_class], wagon.class) { !wagon.is_a?(Wagon) }
+    validate_variable(ERRORS[:attach_on_move], train_speed) { train_speed != 0 }
+    validate_variable(ERRORS[:wagon_type],
+                      [wagon_type, type]) { wagon_type != type }
+  end
+
+  def validate_detach_wagon(wagon)
+    validate_variable(ERRORS[:empty_wagons]) { @wagons.empty? }
+    validate_variable(ERRORS[:wagon_class], wagon.class) { !wagon.is_a?(Wagon) }
+    validate_variable(ERRORS[:detach_wagon], speed) { !speed.zero? }
+  end
 end
 # rubocop:enable Metrics/ClassLength

@@ -10,7 +10,7 @@ class Wagon
     passenger: 'пассажирский',
     cargo: 'грузовой'
   }.freeze
-  TEXT_ERRORS = {
+  ERRORS = {
     wagon_type: 'Неверно передан тип вагона, доступные значения: %s'
   }.freeze
 
@@ -19,7 +19,7 @@ class Wagon
   def initialize(type)
     unless VALID_WAGON_TYPES.include?(type)
       raise ArgumentError, format(
-        TEXT_ERRORS[:wagon_type], VALID_WAGON_TYPES.keys
+        ERRORS[:wagon_type], VALID_WAGON_TYPES.keys
       )
     end
 
