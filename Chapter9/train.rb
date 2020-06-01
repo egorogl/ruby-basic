@@ -15,7 +15,9 @@ class Train
     cargo: 'грузовой'
   }.freeze
   REGEXP_NUMBER_FORMAT = /^[a-zа-я0-9]{3}-?[a-zа-я0-9]{2}$/i.freeze
-  NUMBER_FORMAT_TEXT = "Формат номера поезда:\nтри буквы или цифры в любом порядке, необязательный дефис\nи еще 2 буквы или цифры после дефиса"
+  NUMBER_FORMAT_TEXT =
+    "Формат номера поезда:\nтри буквы или цифры в любом порядке, "\
+    "необязательный дефис\nи еще 2 буквы или цифры после дефиса"
 
   attr_accessor :speed
   attr_reader :number, :current_station, :type, :route, :wagons
@@ -43,6 +45,11 @@ class Train
 
   def self.each(&block)
     @@trains.each(&block)
+  end
+
+  def to_s
+    "Поезд: #{number}, тип: #{VALID_TRAIN_TYPES[type]}, "\
+    "скорость: #{speed}, вагонов: #{count_wagons}"
   end
 
   def valid?
