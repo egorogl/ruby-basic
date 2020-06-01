@@ -45,6 +45,22 @@ class Train
     @@trains.each(&block)
   end
 
+  def each_with_index_wagons
+    if block_given?
+      wagons.each_with_index { |wagon, index| yield wagon, index }
+    else
+      raise "Не передан блок в инстанс метод #{self.class}#each_with_index_wagons"
+    end
+  end
+
+  def each_wagons
+    if block_given?
+      wagons.each { |wagon| yield wagon }
+    else
+      raise "Не передан блок в инстанс метод #{self.class}#each_wagons"
+    end
+  end
+
   def valid?
     validate!
     true
