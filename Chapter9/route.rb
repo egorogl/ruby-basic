@@ -17,7 +17,7 @@ class Route
 
   attr_reader :stations
 
-  alias to_s display_stations
+  alias display_stations to_s
 
   def initialize(from, to)
     unless from.is_a?(Station)

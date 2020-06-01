@@ -9,27 +9,27 @@ class Station
 
   attr_reader :name, :trains
 
-  @@stations = []
+  @stations = []
 
   def initialize(name)
     name = name.to_s
 
     raise 'Название станции не должно быть пустым' if name.empty?
-    raise "Станция с именем #{name} уже есть" if @@stations.detect { |station| station.name == name}
+    raise "Станция с именем #{name} уже есть" if @stations.detect { |station| station.name == name}
 
     register_instance
 
     @name = name
     @trains = []
-    @@stations.push(self)
+    @stations.push(self)
   end
 
   def self.all
-    @@stations
+    @stations
   end
 
   def self.each(&block)
-    @@stations.each(&block)
+    @stations.each(&block)
   end
 
   def to_s
