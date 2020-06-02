@@ -28,8 +28,20 @@ class Station
     @@stations
   end
 
-  def self.each(&block)
-    @@stations.each(&block)
+  def self.each
+    if block_given?
+      @@stations.each { |station| yield station }
+    else
+      raise "Не передан блок в #{self}.each"
+    end
+  end
+
+  def each_trains
+    if block_given?
+      trains.each { |train| yield train }
+    else
+      raise "Не передан блок в инстанс метод #{self.class}#each_trains"
+    end
   end
 
   # Тут смысла в этом методе нет, т.к. нельзя создать
