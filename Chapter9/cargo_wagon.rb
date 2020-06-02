@@ -4,6 +4,12 @@ require_relative 'wagon'
 
 # CargoWagon class
 class CargoWagon < Wagon
+  ERRORS = {
+    all_volume_numeric: 'Объем свободно места должно быть указано числом',
+    busy_volume_gt_all: 'Объем занятого места больше, чем объем вагона',
+    no_free_volume: 'Нет свободого места'
+  }.freeze
+
   attr_reader :volume
   attr_accessor :busy_volume
 
@@ -15,10 +21,10 @@ class CargoWagon < Wagon
     validate!
   end
 
-  def take_volume(volume)
-    raise 'Нет свободого места' if busy_volume + volume > self.volume
+  def take_volume(occupy)
+    raise ERRORS[:no_free_volume] if busy_volume + occupy > volume
 
-    self.busy_volume += volume
+    self.busy_volume += occupy
   end
 
   def free_volume
@@ -28,8 +34,8 @@ class CargoWagon < Wagon
   private
 
   def validate!
-    raise 'Объем свободно места должно быть указано числом' unless volume.is_a?(Numeric)
-    raise 'Объем занятого места больше, чем объем вагона' if busy_volume > volume
+    raise ERRORS[:all_volume_numeric] unless volume.is_a?(Numeric)
+    raise ERRORS[:busy_volume_gt_all] if busy_volume > volume
 
     super
   end
