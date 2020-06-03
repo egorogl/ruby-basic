@@ -1,17 +1,22 @@
 # frozen_string_literal: true
 
 require_relative 'wagon'
+require_relative 'acсessors'
+require_relative 'validation'
 
 # CargoWagon class
 class CargoWagon < Wagon
+  include Accessors
+  include Validation
+
   ERRORS = {
-    all_volume_numeric: 'Объем свободно места должно быть указано числом',
-    busy_volume_gt_all: 'Объем занятого места больше, чем объем вагона',
     no_free_volume: 'Нет свободого места'
   }.freeze
 
   attr_reader :volume
-  attr_accessor :busy_volume
+  attr_accessor_with_history :busy_volume
+
+  validate :volume, :type, Numeric
 
   def initialize(volume)
     @volume = volume
@@ -29,14 +34,5 @@ class CargoWagon < Wagon
 
   def free_volume
     volume - busy_volume
-  end
-
-  private
-
-  def validate!
-    raise ERRORS[:all_volume_numeric] unless volume.is_a?(Numeric)
-    raise ERRORS[:busy_volume_gt_all] if busy_volume > volume
-
-    super
   end
 end

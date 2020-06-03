@@ -1,17 +1,22 @@
 # frozen_string_literal: true
 
 require_relative 'wagon'
+require_relative 'acсessors'
+require_relative 'validation'
 
 # PassengerWagon class
 class PassengerWagon < Wagon
+  include Accessors
+  include Validation
+
   ERRORS = {
-    all_seats_numeric: 'Количество мест должно быть указано целым числом',
-    busy_seats_gt_all: 'Количество занятых место больше, чем мест в вагоне',
     no_free_seats: 'Нет свободных мест'
   }.freeze
 
   attr_reader :seats
-  attr_accessor :busy_seats
+  attr_accessor_with_history :busy_seats
+
+  validate :seats, :type, Integer
 
   def initialize(seats)
     @seats = seats
@@ -29,14 +34,5 @@ class PassengerWagon < Wagon
 
   def free_seats
     seats - busy_seats
-  end
-
-  private
-
-  def validate!
-    raise ERRORS[:all_seats_numeric] unless seats.is_a?(Integer)
-    raise ERRORS[:busy_seats_gt_all] if busy_seats > seats
-
-    super
   end
 end

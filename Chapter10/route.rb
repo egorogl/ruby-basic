@@ -3,14 +3,15 @@
 require_relative 'instance_counter'
 require_relative 'station'
 require_relative 'validate'
+require_relative 'validation'
 
 # Route class
 class Route
   include InstanceCounter
   include Validate
+  include Validation
 
   ERRORS = {
-    station_not_class: '%s станция должна быть классом Station, а не %s',
     index_not_integer: 'Индекс должен быть целым числом',
     index_outbound: 'Индекс выходит за допустимые пределы',
     delete_extreme_station: 'Нельзя удалить начальную или конечную станцию'
@@ -18,25 +19,18 @@ class Route
 
   attr_reader :stations
 
-  def initialize(from, to)
-    validate_variable(ERRORS[:station_not_class], ['Начальная', from.class]) do
-      !from.is_a?(Station)
-    end
+  validate :from, :type, Station
+  validate :to, :type, Station
 
-    validate_variable(ERRORS[:station_not_class], ['Конечная', from.class]) do
-      !to.is_a?(Station)
-    end
+  def initialize(from, to)
+    @from = from
+    @to = to
+
+    validate!
 
     register_instance
 
     @stations = [from, to]
-  end
-
-  def valid?
-    validate!
-    true
-  rescue StandardError
-    false
   end
 
   def add_station(station, insert_index)
@@ -69,10 +63,6 @@ class Route
   end
 
   private
-
-  def validate!
-    # TODO: For later
-  end
 
   def validate_add_station(station, insert_index)
     validate_variable(ERRORS[:station_not_class],

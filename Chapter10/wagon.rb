@@ -29,17 +29,4 @@ class Wagon
   def to_s
     "Вагон типа: #{VALID_WAGON_TYPES[type]}"
   end
-
-  def valid?
-    validate!
-    true
-  rescue StandardError
-    false
-  end
-
-  private
-
-  def validate!
-    # TODO: For later
-  end
 end

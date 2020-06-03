@@ -5,6 +5,8 @@ require_relative 'instance_counter'
 require_relative 'wagon'
 require_relative 'route'
 require_relative 'validate'
+require_relative 'acсessors'
+require_relative 'validation'
 
 # rubocop:disable Metrics/ClassLength
 # Train class
@@ -12,6 +14,8 @@ class Train
   include Manufacturer
   include InstanceCounter
   include Validate
+  include Accessors
+  include Validation
 
   VALID_TRAIN_TYPES = {
     passenger: 'пассажирский',
@@ -37,8 +41,11 @@ class Train
     block_each_wagons: 'Не передан блок в инстанс метод %s#each_wagons'
   }.freeze
 
-  attr_accessor :speed
+  attr_accessor_with_history :speed
   attr_reader :number, :current_station, :type, :route, :wagons
+
+  validate :number, :format, REGEXP_NUMBER_FORMAT
+  validate :speed, :type, Integer
 
   # rubocop:disable Style/ClassVars
   @@trains = []
@@ -48,6 +55,8 @@ class Train
     @speed = 0
     @number = number
     @type = type
+
+    local_validate!
 
     validate!
 
@@ -82,13 +91,6 @@ class Train
     validate_variable(ERRORS[:block_each_wagons], self.class) { !block_given? }
 
     wagons.each { |wagon| yield wagon }
-  end
-
-  def valid?
-    validate!
-    true
-  rescue StandardError
-    false
   end
 
   def stop
@@ -177,16 +179,7 @@ class Train
 
   private
 
-  def validate!
-    validate_init_train
-    validate_variable(ERRORS[:speed_numeric], speed) { !speed.is_a?(Numeric) }
-  end
-
-  def validate_init_train
-    validate_variable(ERRORS[:invalid_number_format], NUMBER_FORMAT_TEXT) do
-      number !~ REGEXP_NUMBER_FORMAT
-    end
-
+  def local_validate!
     validate_variable(ERRORS[:train_type], VALID_TRAIN_TYPES.keys) do
       !VALID_TRAIN_TYPES.include?(type)
     end

@@ -61,13 +61,6 @@ class Station
     "Станция: #{name}, поездов на станции: #{trains.size}"
   end
 
-  def valid?
-    validate!
-    true
-  rescue StandardError
-    false
-  end
-
   def take_train(train)
     validate_variable(ERRORS[:train_class], train.class) { !train.is_a?(Train) }
 
@@ -86,11 +79,5 @@ class Station
     end
 
     @trains.select { |train| train.type == type }
-  end
-
-  private
-
-  def validate!
-    # TODO: For later
   end
 end
