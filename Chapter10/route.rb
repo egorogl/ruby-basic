@@ -12,7 +12,7 @@ class Route
   include Validation
 
   ERRORS = {
-    index_not_integer: 'Индекс должен быть целым числом',
+    index_not_integer: 'Индекс должен быть целым числом!',
     index_outbound: 'Индекс выходит за допустимые пределы',
     delete_extreme_station: 'Нельзя удалить начальную или конечную станцию'
   }.freeze
